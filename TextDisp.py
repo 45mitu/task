@@ -1,4 +1,4 @@
-import tkinter as tk
+import customtkinter as ctk
 import datetime
 
 def update_time(time_var):
@@ -10,51 +10,56 @@ def update_time(time_var):
 
 def task_done(task_label):
     # タスクを完了したら、文字色をグレーに変更
-    task_label.config(fg="gray")
-    task_label.config(text=task_label.cget("text") + " (完了)")
+    task_label.configure(text=task_label.cget("text") + " (完了)", text_color="gray")
 
 def text_display():
     global root
 
-    # tkinterのウィンドウを作成
-    root = tk.Tk()
-    root.title("タスク管理画面")  # ウィンドウのタイトル
-    root.geometry("400x300")  # ウィンドウのサイズ (幅400px, 高さ300px)
+    # `customtkinter` のテーマを設定
+    ctk.set_appearance_mode("System")  # テーマモード ("Light", "Dark", "System")
+    ctk.set_default_color_theme("blue")  # カラーテーマ ("blue", "green", "dark-blue")
 
-    # 画面枠設定
-    main_frame = tk.Frame(root, bg="white")
-    main_frame.grid(row=0, column=0, sticky="nsew")
+    # customtkinterのウィンドウを作成
+    root = ctk.CTk()
+    root.title("タスク管理画面")  # ウィンドウのタイトル
+    root.geometry("800x600")  # ウィンドウのサイズ (幅800px, 高さ600px)
+
+    # メインフレーム
+    main_frame = ctk.CTkFrame(root)
+    main_frame.pack(fill="both", expand=True, padx=30, pady=30)
 
     # 時刻表示
-    time_var = tk.StringVar()
+    time_var = ctk.StringVar()
     time_var.set("現在時刻：" + datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
-    time_label = tk.Label(main_frame, textvariable=time_var, font=('Helvetica', '10'), fg="black", bg="white")
-    time_label.grid(row=0, column=0, columnspan=2, pady=10)
+    time_label = ctk.CTkLabel(main_frame, textvariable=time_var, font=('Helvetica', 20))
+    time_label.pack(pady=(0, 30))
 
-    # タスク1
-    task1_label = tk.Label(main_frame, text="タスク1: レポート作成", font=("Noto Sans CJK JP", 12), fg="black", bg="white")
-    task1_button = tk.Button(main_frame, text="完了", command=lambda: task_done(task1_label), bg="green", fg="white")
+    # タスク1: ボタンを左、ラベルを右に配置
+    task1_frame = ctk.CTkFrame(main_frame)
+    task1_frame.pack(pady=10, anchor="center")
 
-    # 配置
-    task1_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
-    task1_button.grid(row=1, column=0, padx=10, pady=5)
+    task1_button = ctk.CTkButton(task1_frame, text="完了", command=lambda: task_done(task1_label), width=120)
+    task1_button.pack(side="left", padx=10)
+    task1_label = ctk.CTkLabel(task1_frame, text="タスク1: レポート作成", font=("Noto Sans CJK JP", 18))
+    task1_label.pack(side="left", padx=10)
 
-    # タスク2
-    task2_label = tk.Label(main_frame, text="タスク2: 授業課題", font=("Noto Sans CJK JP", 12), fg="black", bg="white")
-    task2_button = tk.Button(main_frame, text="完了", command=lambda: task_done(task2_label), bg="green", fg="white")
+    # タスク2: ボタンを左、ラベルを右に配置
+    task2_frame = ctk.CTkFrame(main_frame)
+    task2_frame.pack(pady=10, anchor="center")
 
-    # 配置
-    task2_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
-    task2_button.grid(row=2, column=0, padx=10, pady=5)
+    task2_button = ctk.CTkButton(task2_frame, text="完了", command=lambda: task_done(task2_label), width=120)
+    task2_button.pack(side="left", padx=10)
+    task2_label = ctk.CTkLabel(task2_frame, text="タスク2: 授業課題", font=("Noto Sans CJK JP", 18))
+    task2_label.pack(side="left", padx=10)
 
     # ウィンドウを閉じるボタン
-    close_button = tk.Button(main_frame, text="閉じる", command=quit, width=13, bg="red", fg="white")
-    close_button.grid(row=3, column=0, columnspan=2, pady=20)
+    close_button = ctk.CTkButton(main_frame, text="閉じる", command=quit, fg_color="red", width=160)
+    close_button.pack(pady=30)
 
     # 時刻更新
     update_time(time_var)
 
-    # tkinterのメインループを開始
+    # customtkinterのメインループを開始
     root.mainloop()
 
 if __name__ == "__main__":
