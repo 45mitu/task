@@ -34,7 +34,7 @@ def get_events():
             token.write(creds.to_json())
 
     service = build("calendar", "v3", credentials=creds)
-    now = datetime.datetime.utcnow().isoformat() + "Z"
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()  # 修正
     events_result = service.events().list(
         calendarId="primary",
         timeMin=now,
@@ -92,10 +92,10 @@ def text_display():
         task_frame = ctk.CTkFrame(main_frame)
         task_frame.pack(pady=10, anchor="center")
 
-        task_button = ctk.CTkButton(task_frame, text="完了", command=lambda lbl=task_label: task_done(lbl), width=120)
-        task_button.pack(side="left", padx=10)
         task_label = ctk.CTkLabel(task_frame, text=event, font=("Noto Sans CJK JP", 18))
         task_label.pack(side="left", padx=10)
+        task_button = ctk.CTkButton(task_frame, text="完了", command=lambda lbl=task_label: task_done(lbl), width=120)
+        task_button.pack(side="left", padx=10)
 
     root.mainloop()
 
