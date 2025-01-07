@@ -28,6 +28,7 @@ canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 check_buttons = []  # チェックボックスのリスト
+labels = []  # ラベルのリスト（テキスト変更用）
 
 # 入力の検証（半角数字のみ）
 def validate_input(input_str):
@@ -44,8 +45,9 @@ def convert_to_half_width(event):
 
 # データ表示の更新（開始時刻昇順）
 def update_display():
-    global check_buttons
+    global check_buttons, labels
     check_buttons.clear()  # リストをリセット
+    labels.clear()
 
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
@@ -65,6 +67,7 @@ def update_display():
         label.grid(row=0, column=1, padx=10, sticky="w")
 
         check_buttons.append((check_var, i-1))
+        labels.append(label)
 
 def delete_selected_data():
     global saved_data
@@ -73,10 +76,13 @@ def delete_selected_data():
         saved_data.pop(index)
     update_display()
 
+def complete_selected_data():
+    for check_var, label in zip(check_buttons, labels):
+        if check_var[0].get():  # チェックボックスがオンの場合
+            label.config(fg="gray")  # ラベルの文字色を灰色に変更
+
 def edit_selected_data():
-    """選択した項目を編集"""
     selected_indices = [idx for check_var, idx in check_buttons if check_var.get()]
-    
     if len(selected_indices) != 1:
         tk.messagebox.showerror("エラー", "編集する項目を1つだけ選択してください。")
         return
@@ -84,7 +90,6 @@ def edit_selected_data():
     selected_index = selected_indices[0]
     selected_data = saved_data[selected_index]
 
-    # 新しいウィンドウを開いて編集
     edit_window = tk.Toplevel(root)
     edit_window.title("編集ウィンドウ")
     edit_window.geometry("300x300")
@@ -158,7 +163,7 @@ def open_input_window():
             update_display()
             new_window.destroy()
         else:
-            tk.Label(new_window, text="ての項目を入力してください！", fg="red").pack()
+            tk.Label(new_window, text="すべての項目を入力してください！", fg="red").pack()
 
     save_button = tk.Button(new_window, text="保存", command=save_data)
     save_button.pack(pady=10)
@@ -166,16 +171,16 @@ def open_input_window():
 button_frame = tk.Frame(root)
 button_frame.pack(side=tk.BOTTOM, pady=20)
 
-# 新しいウィンドウを開くボタン
 main_button = tk.Button(button_frame, text="タスクの追加", command=open_input_window)
 main_button.grid(row=0, column=0, padx=10, pady=5)
 
-# 選択した項目を削除するボタン
-delete_button = tk.Button(button_frame, text="選択した項目を削除", command=delete_selected_data)
+delete_button = tk.Button(button_frame, text="削除", command=delete_selected_data)
 delete_button.grid(row=0, column=1, padx=10, pady=5)
 
-# 選択した項目を編集するボタン
-edit_button = tk.Button(button_frame, text="選択した項目を編集", command=edit_selected_data)
+edit_button = tk.Button(button_frame, text="編集", command=edit_selected_data)
 edit_button.grid(row=0, column=2, padx=10, pady=5)
+
+complete_button = tk.Button(button_frame, text="完了", command=complete_selected_data)
+complete_button.grid(row=0, column=3, padx=10, pady=5)
 
 root.mainloop()
