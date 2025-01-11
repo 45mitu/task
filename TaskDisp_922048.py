@@ -6,6 +6,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+import subprocess
 
 # GoogleカレンダーAPIのスコープ
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
@@ -88,6 +89,22 @@ def set_placeholder(entry, placeholder):
             entry.configure(text_color="grey")
     entry.bind("<FocusIn>", on_focus_in)
     entry.bind("<FocusOut>", on_focus_out)
+
+def open_modal():
+    # 新しいウィンドウを作成（モーダル）
+    modal_window = ctk.CTkToplevel()
+    modal_window.title("モーダルウィンドウ")
+    modal_window.geometry("300x200")
+
+    # .pyファイルをモーダルウィンドウで実行（例: test.py）
+    try:
+        result = subprocess.run(['python', 'Timer.py'], capture_output=True, text=True)
+        output_label = ctk.CTkLabel(modal_window, text=result.stdout)
+        output_label.pack(pady=20)
+    except Exception as e:
+        error_label = ctk.CTkLabel(modal_window, text=f"Error: {str(e)}")
+        error_label.pack(pady=20)
+
 
 # メインウィンドウ作成
 ctk.set_appearance_mode("System")  # テーマモード ("Light", "Dark", "System")
@@ -300,6 +317,9 @@ delete_button.grid(row=0, column=1, padx=10, pady=5)
 # 選択した項目を編集するボタン
 edit_button = ctk.CTkButton(button_frame, text="選択した項目を編集", command=edit_selected_data, font=("Helvetica", 16))
 edit_button.grid(row=0, column=2, padx=10, pady=5)
+
+button = ctk.CTkButton(root, text="タイマーを表示", command=open_modal)
+button.pack(pady=20)
 
 # プログラム起動時にデータを読み込み
 update_display()
