@@ -116,7 +116,7 @@ def update_display():
         widget.destroy()
 
     events = get_events()
-    sorted_events = sorted(events, key=lambda x: x['start']['dateTime'])
+    sorted_events = sorted(events, key=lambda x: x['start'].get('dateTime', x['start'].get('date')))
 
     for i, event in enumerate(sorted_events, start=1):
         start = event['start'].get('dateTime', event['start'].get('date'))
@@ -173,13 +173,13 @@ def edit_selected_data():
     tk.Label(edit_window, text="開始時刻 (半角数字のみ)").pack(pady=5)
     start_time_entry = tk.Entry(edit_window, validate='key', validatecommand=validate_cmd)
     start_time_entry.pack(pady=5)
-    start_time_entry.insert(0, selected_event['start']['dateTime'])
+    start_time_entry.insert(0, selected_event['start'].get('dateTime', selected_event['start'].get('date')))
     start_time_entry.bind("<KeyRelease>", convert_to_half_width)
 
     tk.Label(edit_window, text="終了時刻 (半角数字のみ)").pack(pady=5)
     end_time_entry = tk.Entry(edit_window, validate='key', validatecommand=validate_cmd)
     end_time_entry.pack(pady=5)
-    end_time_entry.insert(0, selected_event['end']['dateTime'])
+    end_time_entry.insert(0, selected_event['end'].get('dateTime', selected_event['end'].get('date')))
     end_time_entry.bind("<KeyRelease>", convert_to_half_width)
 
     tk.Label(edit_window, text="内容").pack(pady=5)
