@@ -90,7 +90,7 @@ def set_placeholder(entry, placeholder):
     entry.bind("<FocusOut>", on_focus_out)
 
 # メインウィンドウ作成
-ctk.set_appearance_mode("System")  # テーマモード ("Light", "Dark", "System")
+ctk.set_appearance_mode("Light")  # テーマモード ("Light", "Dark", "System")
 ctk.set_default_color_theme("blue")  # カラーテーマ ("blue", "green", "dark-blue")
 
 root = ctk.CTk()
@@ -107,19 +107,11 @@ update_time()
 data_frame = ctk.CTkFrame(root)
 data_frame.pack(fill=ctk.BOTH, expand=True, pady=10)
 
-canvas = ctk.CTkCanvas(data_frame)
-scrollbar = ctk.CTkScrollbar(data_frame, orientation=ctk.VERTICAL, command=canvas.yview)
-scrollable_frame = ctk.CTkFrame(canvas)
+task_frame = ctk.CTkScrollableFrame(data_frame)
+task_frame.pack(side="left",fill=ctk.BOTH,expand=True,pady=10,padx=(0,10))
 
-scrollable_frame.bind(
-    "<Configure>",
-    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-)
-canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-canvas.configure(yscrollcommand=scrollbar.set)
-
-canvas.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
-scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
+birthday_frame = ctk.CTkScrollableFrame(data_frame)
+birthday_frame.pack(side="right",fill=ctk.BOTH,expand=True,pady=10,padx=(10,0))
 
 check_buttons = []  # チェックボックスのリスト
 
@@ -141,7 +133,7 @@ def update_display():
     global check_buttons
     check_buttons.clear()  # リストをリセット
 
-    for widget in scrollable_frame.winfo_children():
+    for widget in task_frame.winfo_children():
         widget.destroy()
 
     events = get_events()
@@ -155,22 +147,31 @@ def update_display():
             start_dt = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
             end_dt = datetime.datetime.fromisoformat(end.replace('Z', '+00:00'))
             jst = pytz.timezone('Asia/Tokyo')
-            start_jst = start_dt.astimezone(jst).strftime('%Y-%m-%d %H:%M:%S')
+            start_jst = start_dt.astimezone(jst).strftime('%Y-%m-%d-%H-%M-%S')
             end_jst = end_dt.astimezone(jst).strftime('%Y-%m-%d %H:%M:%S')
         else:
             start_jst = start
             end_jst = end
         
-        entry_text = f"{i}. 開始時刻: {start_jst}, 終了時刻: {end_jst}, 内容: {event['summary']}"
-        row_frame = ctk.CTkFrame(scrollable_frame)
-        row_frame.pack(fill=ctk.X, pady=5)
+        start_parts = start_jst.split("-")# -で区切ったそれぞれの時間データをリストに分ける
+        if len(start_parts) == 3:# リストの要素数を数えて、時間が設定されてるものと終日のもので分ける
+            day_text = start_parts[1] + "/" + start_parts[2] + "  0時"
+        else:
+            day_text = start_parts[1] + "/" + start_parts[2] + " " + start_parts[3] + "時"
+        tasktime_text = f"{day_text}"
+        tasksummary_text = f"{event['summary']}"
+        entry_text = f"{i}. 開始時刻: {start_jst}, 終了時刻: {end_jst} \n 内容: {event['summary']}"
+        row_frame = ctk.CTkFrame(task_frame)
+        row_frame.pack(fill=ctk.X, pady=10)
 
         check_var = ctk.BooleanVar()
         check_button = ctk.CTkCheckBox(row_frame, variable=check_var, text="")
-        check_button.grid(row=0, column=0, padx=10)
+        check_button.grid(row=1, column=0, padx=10)
 
-        label = ctk.CTkLabel(row_frame, text=entry_text, anchor="w", justify="left", font=("Helvetica", 16))
-        label.grid(row=0, column=1, padx=10, sticky="w")
+        timelabel = ctk.CTkLabel(row_frame, text= tasktime_text, anchor="w", justify="left", font=("Helvetica", 16))
+        timelabel.grid(row=0, column=1, pady=3, sticky="w")
+        tasklabel = ctk.CTkLabel(row_frame, text= tasksummary_text, anchor="e", justify="left", font=("Helvetica", 20))
+        tasklabel.grid(row=2, column=2, pady=5, sticky="w")
 
         check_buttons.append((check_var, event['id']))
 

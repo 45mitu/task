@@ -9,7 +9,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
 # GoogleカレンダーAPIのスコープ
-SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 # GoogleカレンダーAPIの認証とサービスの取得
 def get_calendar_service():
