@@ -37,7 +37,7 @@ def get_events():
     return events
 
 # Googleカレンダーにイベントを追加
-def add_event(start_time, end_time, summary):
+def add_event(start_time, end_time, summary, color_id):
     service = get_calendar_service()
     event = {
         'summary': summary,
@@ -49,17 +49,19 @@ def add_event(start_time, end_time, summary):
             'dateTime': end_time,
             'timeZone': 'Asia/Tokyo',
         },
+        'color_Id': color_id,
     }
     event_result = service.events().insert(calendarId='primary', body=event).execute()
     return event_result
 
 # Googleカレンダーのイベントを更新
-def update_event(event_id, start_time, end_time, summary):
+def update_event(event_id, start_time, end_time, summary,color_id):
     service = get_calendar_service()
     event = service.events().get(calendarId='primary', eventId=event_id).execute()
     event['summary'] = summary
     event['start']['dateTime'] = start_time
     event['end']['dateTime'] = end_time
+    event['colorId'] = color_id
     updated_event = service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
     return updated_event
 
@@ -108,12 +110,15 @@ data_frame = ctk.CTkFrame(root)
 data_frame.pack(fill=ctk.BOTH, expand=True, pady=10)
 
 task_frame = ctk.CTkScrollableFrame(data_frame)
-task_frame.pack(side="left",fill=ctk.BOTH,expand=True,pady=10,padx=(0,10))
+task_frame.pack(side="left",fill=ctk.BOTH,expand=True,pady=5,padx=(5,10))
 
-birthday_frame = ctk.CTkScrollableFrame(data_frame)
-birthday_frame.pack(side="right",fill=ctk.BOTH,expand=True,pady=10,padx=(10,0))
+red_frame = ctk.CTkScrollableFrame(data_frame)
+red_frame.pack(side="right",fill=ctk.BOTH,expand=True,pady=5,padx=(10,5))
+
+
 
 check_buttons = []  # チェックボックスのリスト
+rcheck_buttons = []  # チェックボックスのリスト
 
 # 入力の検証（半角数字のみ）
 def validate_input(input_str):
@@ -135,48 +140,96 @@ def update_display():
 
     for widget in task_frame.winfo_children():
         widget.destroy()
+    for widget in red_frame.winfo_children():
+        widget.destroy()
+
+    titlelabel1 = ctk.CTkLabel(task_frame, text= "スケジュール",justify="center", font=("Helvetica", 20))
+    titlelabel1.pack(fill=ctk.X,pady=10)
+
+    titlelabel2 = ctk.CTkLabel(red_frame, text= "重要タスク",justify="center", font=("Helvetica", 20))
+    titlelabel2.pack(fill=ctk.X,pady=10)
 
     events = get_events()
     sorted_events = sorted(events, key=lambda x: x['start'].get('dateTime', x['start'].get('date')))
+    for i,event in enumerate(sorted_events,start=1):
+    # for event in events:
+        if event.get('colorId') == '11':
+            rstart = event['start'].get('dateTime', event['start'].get('date'))
+            rend = event['end'].get('dateTime', event['end'].get('date')) 
+            if 'dateTime' in event['start']:
+                rstart_dt = datetime.datetime.fromisoformat(rstart.replace('Z', '+00:00'))
+                rend_dt = datetime.datetime.fromisoformat(rend.replace('Z', '+00:00'))
+                jst = pytz.timezone('Asia/Tokyo')
+                rstart_jst = rstart_dt.astimezone(jst).strftime('%Y-%m-%d-%H-%M-%S')
+                rend_jst = rend_dt.astimezone(jst).strftime('%Y-%m-%d %H:%M:%S')
+            else:   
+                rstart_jst = rstart
+                rend_jst = rend 
 
-    for i, event in enumerate(sorted_events, start=1):
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        end = event['end'].get('dateTime', event['end'].get('date'))
-        
-        if 'dateTime' in event['start']:
-            start_dt = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
-            end_dt = datetime.datetime.fromisoformat(end.replace('Z', '+00:00'))
-            jst = pytz.timezone('Asia/Tokyo')
-            start_jst = start_dt.astimezone(jst).strftime('%Y-%m-%d-%H-%M-%S')
-            end_jst = end_dt.astimezone(jst).strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            start_jst = start
-            end_jst = end
-        
-        start_parts = start_jst.split("-")# -で区切ったそれぞれの時間データをリストに分ける
-        if len(start_parts) == 3:# リストの要素数を数えて、時間が設定されてるものと終日のもので分ける
-            day_text = start_parts[1] + "/" + start_parts[2] + "  0時"
-        else:
-            day_text = start_parts[1] + "/" + start_parts[2] + " " + start_parts[3] + "時"
-        tasktime_text = f"{day_text}"
-        tasksummary_text = f"{event['summary']}"
-        entry_text = f"{i}. 開始時刻: {start_jst}, 終了時刻: {end_jst} \n 内容: {event['summary']}"
-        row_frame = ctk.CTkFrame(task_frame)
-        row_frame.pack(fill=ctk.X, pady=10)
+            rstart_parts = rstart_jst.split("-")# -で区切ったそれぞれの時間データをリストに分ける
+            if len(rstart_parts) == 3:# リストの要素数を数えて、時間が設定されてるものと終日のもので分ける
+                rday_text = rstart_parts[1] + "/" + rstart_parts[2] + "  0時"
+            else:
+                rday_text = rstart_parts[1] + "/" + rstart_parts[2] + " " + rstart_parts[3] + "時"
 
-        check_var = ctk.BooleanVar()
-        check_button = ctk.CTkCheckBox(row_frame, variable=check_var, text="")
-        check_button.grid(row=1, column=0, padx=10)
+            rtime_text = f"{rday_text}"
+            rsummary_text = f"{event['summary']}"
+            rrow_frame = ctk.CTkFrame(red_frame)
+            rrow_frame.pack(fill=ctk.X, pady=10)
 
-        timelabel = ctk.CTkLabel(row_frame, text= tasktime_text, anchor="w", justify="left", font=("Helvetica", 16))
-        timelabel.grid(row=0, column=1, pady=3, sticky="w")
-        tasklabel = ctk.CTkLabel(row_frame, text= tasksummary_text, anchor="e", justify="left", font=("Helvetica", 20))
-        tasklabel.grid(row=2, column=2, pady=5, sticky="w")
+            rcheck_var = ctk.BooleanVar()
+            rcheck_button = ctk.CTkCheckBox(rrow_frame, variable=rcheck_var, text="")
+            rcheck_button.grid(row=1, column=0, padx=10)
 
-        check_buttons.append((check_var, event['id']))
+            rtimelabel = ctk.CTkLabel(rrow_frame, text= rtime_text, anchor="w", justify="left", font=("Helvetica", 16))
+            rtimelabel.grid(row=0, column=1, pady=3, sticky="w")
+            rtasklabel = ctk.CTkLabel(rrow_frame, text= rsummary_text, anchor="e", justify="left", font=("Helvetica", 20))
+            rtasklabel.grid(row=2, column=2, pady=5, sticky="w")
+
+            rcheck_buttons.append((rcheck_var, event['id']))
+
+        else:    
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            end = event['end'].get('dateTime', event['end'].get('date'))
+            if 'dateTime' in event['start']:
+                start_dt = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
+                end_dt = datetime.datetime.fromisoformat(end.replace('Z', '+00:00'))
+                jst = pytz.timezone('Asia/Tokyo')
+                start_jst = start_dt.astimezone(jst).strftime('%Y-%m-%d-%H-%M-%S')
+                end_jst = end_dt.astimezone(jst).strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                start_jst = start
+                end_jst = end
+    
+            start_parts = start_jst.split("-")# -で区切ったそれぞれの時間データをリストに分ける
+
+            if len(start_parts) == 3:# リストの要素数を数えて、時間が設定されてるものと終日のもので分ける
+                day_text = start_parts[1] + "/" + start_parts[2] + "  0時"
+            else:
+                day_text = start_parts[1] + "/" + start_parts[2] + " " + start_parts[3] + "時"
+            
+            tasktime_text = f"{day_text}"
+            tasksummary_text = f"{event['summary']}"
+            row_frame = ctk.CTkFrame(task_frame)
+            row_frame.pack(fill=ctk.X, pady=10)
+
+            check_var = ctk.BooleanVar()
+            check_button = ctk.CTkCheckBox(row_frame, variable=check_var, text="")
+            check_button.grid(row=1, column=0, padx=10)
+
+            timelabel = ctk.CTkLabel(row_frame, text= tasktime_text, anchor="w", justify="left", font=("Helvetica", 16))
+            timelabel.grid(row=0, column=1, pady=3, sticky="w")
+            tasklabel = ctk.CTkLabel(row_frame, text= tasksummary_text, anchor="e", justify="left", font=("Helvetica", 20))
+            tasklabel.grid(row=2, column=2, pady=5, sticky="w")
+
+            check_buttons.append((check_var, event['id']))
 
 def delete_selected_data():
     indices_to_delete = [event_id for check_var, event_id in check_buttons if check_var.get()]
+    for event_id in indices_to_delete:
+        delete_event(event_id)
+    update_display()
+    indices_to_delete = [event_id for check_var, event_id in rcheck_buttons if check_var.get()]
     for event_id in indices_to_delete:
         delete_event(event_id)
     update_display()
@@ -184,12 +237,16 @@ def delete_selected_data():
 def edit_selected_data():
     """選択した項目を編集"""
     selected_indices = [event_id for check_var, event_id in check_buttons if check_var.get()]
+    rselected_indices = [event_id for check_var, event_id in check_buttons if check_var.get()]
     
-    if len(selected_indices) != 1:
-        ctk.messagebox.showerror("エラー", "編集する項目を1つだけ選択してください。")
+    if (len(selected_indices) == 1) or (len(rselected_indices) == 1):
         return
 
     selected_event_id = selected_indices[0]
+    service = get_calendar_service()
+    selected_event = service.events().get(calendarId='primary', eventId=selected_event_id).execute()
+
+    selected_event_id = rselected_indices[0]
     service = get_calendar_service()
     selected_event = service.events().get(calendarId='primary', eventId=selected_event_id).execute()
 
