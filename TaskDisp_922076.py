@@ -376,8 +376,8 @@ delete_button.grid(row=0, column=1, padx=10, pady=5)
 edit_button = ctk.CTkButton(button_frame, text="選択した項目を編集", command=edit_selected_data, font=("Helvetica", 16))
 edit_button.grid(row=0, column=2, padx=10, pady=5)
 
-button = ctk.CTkButton(root, text="タイマーを表示", command=open_modal)
-button.pack(pady=20)
+button = ctk.CTkButton(button_frame, text="タイマーを表示", command=open_modal,font=("Helvetica", 16))
+button.grid(row=0,column=3,padx=10, pady=5)
 
 # プログラム起動時にデータを読み込み
 update_display()
